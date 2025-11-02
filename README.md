@@ -16,7 +16,30 @@
 - `/패널재전송`: 정보 확인 패널 재전송
 - `/티켓닫기`: 티켓 채널 닫기
 
-## 설치 방법
+## 빠른 시작
+
+### 자동 설치 (권장)
+
+```bash
+# 1. 저장소 클론
+git clone <repository-url>
+cd ytpremium
+
+# 2. 설치 스크립트 실행
+chmod +x install.sh
+./install.sh
+
+# 3. .env 파일 편집 (봇 토큰 입력)
+nano .env
+
+# 4. config.json 파일 편집 (채널/역할 ID 입력)
+nano config.json
+
+# 5. 봇 시작 (PM2 사용, 백그라운드 실행)
+./start.sh
+```
+
+### 수동 설치
 
 1. **의존성 설치**:
 ```bash
@@ -31,7 +54,7 @@ CLIENT_ID=your_client_id_here
 ```
 
 3. **설정 파일 구성**:
-`config.json` 파일에서 다음 정보를 설정하세요:
+`config.example.json`을 `config.json`으로 복사하고 다음 정보를 설정하세요:
 ```json
 {
   "panelChannelId": "패널을_전송할_채널_ID",
@@ -46,14 +69,28 @@ CLIENT_ID=your_client_id_here
 2. 채널/역할 우클릭 > ID 복사
 
 4. **봇 실행**:
+
+개발 모드 (테스트용):
+```bash
+npm run dev
+```
+
+일반 실행:
 ```bash
 npm start
 ```
 
-개발 모드 (nodemon):
+**PM2 사용 (백그라운드 실행, 자동 재시작)**:
 ```bash
-npm run dev
+npm run pm2:start  # 시작
+npm run pm2:logs   # 로그 보기
+npm run pm2:status # 상태 확인
+npm run pm2:stop   # 중지
 ```
+
+### 우분투 서버 배포
+
+우분투 서버에 배포하는 방법은 [DEPLOY.md](DEPLOY.md)를 참고하세요.
 
 ## Discord 봇 설정 방법
 
