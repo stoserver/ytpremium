@@ -4,6 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const { handleCheckInfo, handleCreateTicket } = require('./handlers/buttonHandler');
 const { handleSelectAccount, handleAdminSelectAccount } = require('./handlers/selectMenuHandler');
+const { handleSetupButton } = require('./commands/시작하기');
 const { isSetupCompleted } = require('./utils/config');
 
 const client = new Client({
@@ -149,7 +150,23 @@ client.on('interactionCreate', async interaction => {
 
     // 버튼 처리
     if (interaction.isButton()) {
-        // 설정 확인
+        // 설정 버튼은 설정 완료 여부와 관계없이 처리
+        if (interaction.customId.startsWith('setup_')) {
+            try {
+                await handleSetupButton(interaction);
+            } catch (error) {
+                console.error('설정 버튼 처리 중 오류:', error);
+                const errorMessage = { content: '처리 중 오류가 발생했습니다!', ephemeral: true };
+                if (interaction.replied || interaction.deferred) {
+                    await interaction.followUp(errorMessage);
+                } else {
+                    await interaction.reply(errorMessage);
+                }
+            }
+            return;
+        }
+
+        // 일반 버튼은 설정 확인
         if (!isSetupCompleted()) {
             const setupEmbed = new EmbedBuilder()
                 .setColor(0xFF0000)
