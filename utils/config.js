@@ -61,7 +61,8 @@ function resetConfig() {
 
 // 필수 설정 확인
 function validateConfig(config) {
-    const required = ['panelChannelId', 'logChannelId', 'ownerRoleId', 'ticketManagerRoleId', 'ticketCategoryId', 'buyerRoleId'];
+    // ticketCategoryId는 선택사항 (null 가능)
+    const required = ['panelChannelId', 'logChannelId', 'ownerRoleId', 'ticketManagerRoleId', 'buyerRoleId'];
     const missing = [];
 
     for (const field of required) {

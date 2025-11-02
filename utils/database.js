@@ -6,6 +6,12 @@ const dbPath = path.join(__dirname, '../database.json');
 // 데이터베이스 읽기
 function readDB() {
     try {
+        if (!fs.existsSync(dbPath)) {
+            // 데이터베이스 파일이 없으면 생성
+            const defaultDB = { users: {} };
+            writeDB(defaultDB);
+            return defaultDB;
+        }
         const data = fs.readFileSync(dbPath, 'utf8');
         return JSON.parse(data);
     } catch (error) {

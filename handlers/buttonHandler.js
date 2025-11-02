@@ -133,6 +133,30 @@ async function handleCreateTicket(interaction) {
             content: `✅ 티켓이 생성되었습니다: ${ticketChannel}`
         });
 
+        // 로그 채널에 기록
+        if (config.logChannelId) {
+            const logChannel = guild.channels.cache.get(config.logChannelId);
+            if (logChannel) {
+                const logEmbed = new EmbedBuilder()
+                    .setColor(0x00FF00)
+                    .setTitle('🎫 티켓 생성 로그')
+                    .setDescription(`새로운 티켓이 생성되었습니다.`)
+                    .addFields(
+                        { name: '👤 생성자', value: `${member.user.tag} (${member.id})`, inline: true },
+                        { name: '🔗 티켓 채널', value: `${ticketChannel}`, inline: true },
+                        { name: '⏰ 생성 시간', value: new Date().toLocaleString('ko-KR'), inline: true }
+                    )
+                    .setTimestamp()
+                    .setFooter({ text: 'YouTube Premium Manager' });
+
+                try {
+                    await logChannel.send({ embeds: [logEmbed] });
+                } catch (error) {
+                    console.error('로그 채널 전송 오류:', error);
+                }
+            }
+        }
+
     } catch (error) {
         console.error('티켓 생성 오류:', error);
         await interaction.editReply({

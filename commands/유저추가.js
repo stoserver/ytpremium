@@ -1,5 +1,6 @@
 const { SlashCommandBuilder, PermissionFlagsBits, EmbedBuilder } = require('discord.js');
 const { addAccount, getUserAccounts } = require('../utils/database');
+const { readConfig } = require('../utils/config');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -54,6 +55,21 @@ module.exports = {
             const purchaseDate = new Date(account.purchaseDate);
             const expiryDate = new Date(account.expiryDate);
             const accountCount = getUserAccounts(user.id).length;
+            const config = readConfig();
+
+            // 구매자 역할 부여
+            try {
+                const member = await interaction.guild.members.fetch(user.id);
+                if (config.buyerRoleId) {
+                    const buyerRole = interaction.guild.roles.cache.get(config.buyerRoleId);
+                    if (buyerRole && !member.roles.cache.has(config.buyerRoleId)) {
+                        await member.roles.add(buyerRole);
+                        console.log(`✅ ${user.tag}에게 구매자 역할 부여 완료`);
+                    }
+                }
+            } catch (error) {
+                console.error('역할 부여 중 오류:', error);
+            }
 
             const embed = new EmbedBuilder()
                 .setColor(0x00FF00)
@@ -72,6 +88,34 @@ module.exports = {
                 .setFooter({ text: 'YouTube Premium Manager' });
 
             await interaction.reply({ embeds: [embed] });
+
+            // 로그 채널에 기록
+            if (config.logChannelId) {
+                const logChannel = interaction.guild.channels.cache.get(config.logChannelId);
+                if (logChannel) {
+                    const logEmbed = new EmbedBuilder()
+                        .setColor(0x00FF00)
+                        .setTitle('📝 계정 추가 로그')
+                        .setDescription(`새로운 YouTube Premium 계정이 추가되었습니다.`)
+                        .addFields(
+                            { name: '👤 대상 유저', value: `${user.tag} (${user.id})`, inline: false },
+                            { name: '📦 구매상품', value: product, inline: true },
+                            { name: '📧 이메일', value: email, inline: true },
+                            { name: '📅 등록일', value: purchaseDate.toLocaleDateString('ko-KR'), inline: true },
+                            { name: '⏰ 만료일', value: expiryDate.toLocaleDateString('ko-KR'), inline: true },
+                            { name: '👨‍💼 등록자', value: `${interaction.user.tag} (${interaction.user.id})`, inline: false },
+                            { name: '📊 총 계정 수', value: `${accountCount}개`, inline: true }
+                        )
+                        .setTimestamp()
+                        .setFooter({ text: 'YouTube Premium Manager' });
+
+                    try {
+                        await logChannel.send({ embeds: [logEmbed] });
+                    } catch (error) {
+                        console.error('로그 채널 전송 오류:', error);
+                    }
+                }
+            }
 
             // 유저에게 DM 전송 시도
             try {
