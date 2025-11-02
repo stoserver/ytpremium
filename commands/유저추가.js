@@ -1,10 +1,10 @@
 const { SlashCommandBuilder, PermissionFlagsBits, EmbedBuilder } = require('discord.js');
-const { addUser } = require('../utils/database');
+const { addAccount, getUserAccounts } = require('../utils/database');
 
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('유저추가')
-        .setDescription('유튜브 프리미엄 구독 유저를 추가합니다.')
+        .setDescription('유튜브 프리미엄 구독 계정을 추가합니다.')
         .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
         .addUserOption(option =>
             option
@@ -43,33 +43,30 @@ module.exports = {
             });
         }
 
-        // 유저 추가
-        const success = addUser(user.id, {
+        // 계정 추가
+        const account = addAccount(user.id, {
             email: email,
             product: product,
             addedBy: interaction.user.id
         });
 
-        if (success) {
-            // 만료일 계산
-            const expiryDate = new Date();
-            if (product === '6개월') {
-                expiryDate.setMonth(expiryDate.getMonth() + 6);
-            } else if (product === '1년') {
-                expiryDate.setFullYear(expiryDate.getFullYear() + 1);
-            }
+        if (account) {
+            const purchaseDate = new Date(account.purchaseDate);
+            const expiryDate = new Date(account.expiryDate);
+            const accountCount = getUserAccounts(user.id).length;
 
             const embed = new EmbedBuilder()
                 .setColor(0x00FF00)
-                .setTitle('✅ 유저 추가 완료')
-                .setDescription(`${user} 님이 성공적으로 등록되었습니다.`)
+                .setTitle('✅ 계정 추가 완료')
+                .setDescription(`${user} 님에게 YouTube Premium 계정이 추가되었습니다.`)
                 .addFields(
                     { name: '👤 유저', value: `${user.tag}`, inline: true },
                     { name: '📦 구매상품', value: product, inline: true },
                     { name: '📧 이메일', value: email, inline: true },
-                    { name: '📅 등록일', value: new Date().toLocaleDateString('ko-KR'), inline: true },
+                    { name: '📅 등록일', value: purchaseDate.toLocaleDateString('ko-KR'), inline: true },
                     { name: '⏰ 만료일', value: expiryDate.toLocaleDateString('ko-KR'), inline: true },
-                    { name: '👨‍💼 등록자', value: `${interaction.user.tag}`, inline: true }
+                    { name: '👨‍💼 등록자', value: `${interaction.user.tag}`, inline: true },
+                    { name: '📊 총 계정 수', value: `${accountCount}개`, inline: true }
                 )
                 .setTimestamp()
                 .setFooter({ text: 'YouTube Premium Manager' });
@@ -80,15 +77,19 @@ module.exports = {
             try {
                 const dmEmbed = new EmbedBuilder()
                     .setColor(0xFF0000)
-                    .setTitle('🎉 유튜브 프리미엄 구독 등록 완료')
-                    .setDescription('유튜브 프리미엄 구독이 등록되었습니다!')
+                    .setTitle('🎉 유튜브 프리미엄 계정 등록 완료')
+                    .setDescription('새로운 YouTube Premium 계정이 등록되었습니다!')
                     .addFields(
                         { name: '📦 구매상품', value: product, inline: true },
                         { name: '📧 이메일', value: email, inline: true },
-                        { name: '📅 등록일', value: new Date().toLocaleDateString('ko-KR'), inline: true },
-                        { name: '⏰ 만료일', value: expiryDate.toLocaleDateString('ko-KR'), inline: true }
+                        { name: '📅 등록일', value: purchaseDate.toLocaleDateString('ko-KR'), inline: true },
+                        { name: '⏰ 만료일', value: expiryDate.toLocaleDateString('ko-KR'), inline: true },
+                        { name: '📊 총 계정 수', value: `${accountCount}개`, inline: true }
                     )
-                    .setDescription('`/내정보` 명령어로 언제든지 정보를 확인할 수 있습니다.')
+                    .addFields({
+                        name: '📋 정보 확인',
+                        value: '패널의 `📊 내 정보 확인` 버튼을 클릭하여 언제든지 정보를 확인할 수 있습니다.'
+                    })
                     .setTimestamp()
                     .setFooter({ text: 'YouTube Premium Manager' });
 
@@ -98,7 +99,7 @@ module.exports = {
             }
         } else {
             await interaction.reply({
-                content: '❌ 유저 추가 중 오류가 발생했습니다.',
+                content: '❌ 계정 추가 중 오류가 발생했습니다.',
                 ephemeral: true
             });
         }

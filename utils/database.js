@@ -25,8 +25,13 @@ function writeDB(data) {
     }
 }
 
-// 유저 추가
-function addUser(userId, userData) {
+// 고유 ID 생성
+function generateId() {
+    return Date.now().toString(36) + Math.random().toString(36).substr(2);
+}
+
+// 유저에게 계정 추가
+function addAccount(userId, accountData) {
     const db = readDB();
 
     // 구매 날짜와 만료 날짜 계산
@@ -34,28 +39,71 @@ function addUser(userId, userData) {
     const expiryDate = new Date(purchaseDate);
 
     // 구매상품에 따라 만료일 설정
-    if (userData.product === '6개월') {
+    if (accountData.product === '6개월') {
         expiryDate.setMonth(expiryDate.getMonth() + 6);
-    } else if (userData.product === '1년') {
+    } else if (accountData.product === '1년') {
         expiryDate.setFullYear(expiryDate.getFullYear() + 1);
     }
 
-    db.users[userId] = {
-        email: userData.email,
-        product: userData.product,
+    const account = {
+        id: generateId(),
+        email: accountData.email,
+        product: accountData.product,
         purchaseDate: purchaseDate.toISOString(),
         expiryDate: expiryDate.toISOString(),
-        addedBy: userData.addedBy,
+        addedBy: accountData.addedBy,
         addedAt: purchaseDate.toISOString()
     };
 
-    return writeDB(db);
+    // 유저가 없으면 생성
+    if (!db.users[userId]) {
+        db.users[userId] = {
+            accounts: []
+        };
+    }
+
+    // 계정 추가
+    db.users[userId].accounts.push(account);
+
+    return writeDB(db) ? account : null;
 }
 
-// 유저 정보 가져오기
-function getUser(userId) {
+// 유저의 모든 계정 가져오기
+function getUserAccounts(userId) {
     const db = readDB();
-    return db.users[userId] || null;
+    if (!db.users[userId]) {
+        return [];
+    }
+    return db.users[userId].accounts || [];
+}
+
+// 특정 계정 가져오기
+function getAccount(userId, accountId) {
+    const accounts = getUserAccounts(userId);
+    return accounts.find(acc => acc.id === accountId) || null;
+}
+
+// 계정 삭제
+function deleteAccount(userId, accountId) {
+    const db = readDB();
+    if (!db.users[userId]) {
+        return false;
+    }
+
+    const initialLength = db.users[userId].accounts.length;
+    db.users[userId].accounts = db.users[userId].accounts.filter(acc => acc.id !== accountId);
+
+    // 계정이 삭제되었는지 확인
+    if (db.users[userId].accounts.length === initialLength) {
+        return false;
+    }
+
+    // 모든 계정이 삭제되면 유저도 삭제
+    if (db.users[userId].accounts.length === 0) {
+        delete db.users[userId];
+    }
+
+    return writeDB(db);
 }
 
 // 유저 삭제
@@ -75,8 +123,10 @@ function getAllUsers() {
 }
 
 module.exports = {
-    addUser,
-    getUser,
+    addAccount,
+    getUserAccounts,
+    getAccount,
+    deleteAccount,
     deleteUser,
     getAllUsers
 };
