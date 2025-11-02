@@ -11,34 +11,64 @@
 - **티켓 시스템**: 관리자와 1:1 문의 채널 생성
 
 ### 관리자 기능
+- `/시작하기`: 봇 초기 설정 (최초 1회, 대화형 설정)
 - `/유저추가`: YouTube Premium 계정 추가 (여러 개 등록 가능)
 - `/정보조회`: 특정 유저의 계정 정보 조회
 - `/패널재전송`: 정보 확인 패널 재전송
 - `/티켓닫기`: 티켓 채널 닫기
 - `/업데이트`: 봇 자동 업데이트 (GitHub에서 최신 버전 다운로드)
+- `/설정초기화`: 봇 설정 초기화 (재설정 필요 시)
 
 ## 빠른 시작
 
-### 자동 설치 (권장)
+### 1. 봇 초대 및 설정
 
 ```bash
 # 1. 저장소 클론
-git clone <repository-url>
+git clone https://github.com/stoserver/ytpremium.git
 cd ytpremium
 
 # 2. 설치 스크립트 실행
 chmod +x install.sh
 ./install.sh
 
-# 3. .env 파일 편집 (봇 토큰 입력)
+# 3. .env 파일 편집 (봇 토큰, 서버 ID 입력)
 nano .env
+```
 
-# 4. config.json 파일 편집 (채널/역할 ID 입력)
-nano config.json
+**.env 파일 설정**:
+```env
+DISCORD_TOKEN=your_bot_token_here
+CLIENT_ID=your_client_id_here
+GUILD_ID=your_server_id_here  # 봇을 사용할 서버 ID (필수!)
+```
 
-# 5. 봇 시작 (PM2 사용, 백그라운드 실행)
+**중요**: `GUILD_ID`를 설정하지 않으면 봇이 다른 서버에 초대되어도 작동하지 않습니다.
+
+### 2. 봇 시작
+
+```bash
+# PM2로 봇 시작 (백그라운드 실행)
 ./start.sh
 ```
+
+### 3. Discord에서 초기 설정
+
+봇이 시작되면 Discord에서 `/시작하기` 명령어를 실행하세요!
+
+```
+/시작하기
+```
+
+**대화형 설정 절차**:
+1️⃣ **구매자 역할 설정** - 기존 역할 사용 또는 자동 생성
+2️⃣ **로그 채널 설정** - 봇 활동 로그를 기록할 채널
+3️⃣ **오너 역할 설정** - 티켓에서 멘션될 오너 역할
+4️⃣ **티켓 관리자 역할** - 티켓을 관리할 역할
+5️⃣ **티켓 카테고리** - 티켓 채널이 생성될 카테고리
+6️⃣ **패널 채널** - 정보 확인 패널이 전송될 채널
+
+설정이 완료되면 패널이 자동으로 전송되고 모든 기능을 사용할 수 있습니다!
 
 ### 수동 설치
 
@@ -52,24 +82,10 @@ npm install
 ```env
 DISCORD_TOKEN=your_bot_token_here
 CLIENT_ID=your_client_id_here
+GUILD_ID=your_server_id_here
 ```
 
-3. **설정 파일 구성**:
-`config.example.json`을 `config.json`으로 복사하고 다음 정보를 설정하세요:
-```json
-{
-  "panelChannelId": "패널을_전송할_채널_ID",
-  "ownerRoleId": "오너_역할_ID",
-  "ticketManagerRoleId": "티켓관리자_역할_ID",
-  "ticketCategoryId": "티켓_카테고리_ID"
-}
-```
-
-**채널/역할 ID 찾는 방법**:
-1. Discord 설정 > 고급 > 개발자 모드 활성화
-2. 채널/역할 우클릭 > ID 복사
-
-4. **봇 실행**:
+3. **봇 실행**:
 
 개발 모드 (테스트용):
 ```bash

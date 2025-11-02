@@ -1,6 +1,6 @@
 const { EmbedBuilder, ActionRowBuilder, StringSelectMenuBuilder, PermissionFlagsBits, ChannelType } = require('discord.js');
 const { getUserAccounts } = require('../utils/database');
-const config = require('../config.json');
+const { readConfig } = require('../utils/config');
 
 async function handleCheckInfo(interaction) {
     const userId = interaction.user.id;
@@ -49,6 +49,7 @@ async function handleCheckInfo(interaction) {
 async function handleCreateTicket(interaction) {
     const guild = interaction.guild;
     const member = interaction.member;
+    const config = readConfig();
 
     // 이미 티켓이 있는지 확인
     const existingTicket = guild.channels.cache.find(

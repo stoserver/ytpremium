@@ -1,6 +1,6 @@
 const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
 const { sendPanel } = require('../utils/panel');
-const config = require('../config.json');
+const { readConfig } = require('../utils/config');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -12,11 +12,12 @@ module.exports = {
         await interaction.deferReply({ ephemeral: true });
 
         // config에서 채널 ID 가져오기
+        const config = readConfig();
         const channelId = config.panelChannelId;
 
-        if (!channelId || channelId === '여기에_채널_ID_입력') {
+        if (!channelId) {
             return await interaction.editReply({
-                content: '❌ config.json에서 panelChannelId를 먼저 설정해주세요.',
+                content: '❌ 패널 채널이 설정되지 않았습니다. `/시작하기`를 먼저 실행해주세요.',
                 ephemeral: true
             });
         }
@@ -25,7 +26,7 @@ module.exports = {
 
         if (!channel) {
             return await interaction.editReply({
-                content: '❌ 채널을 찾을 수 없습니다. config.json의 채널 ID를 확인해주세요.',
+                content: '❌ 채널을 찾을 수 없습니다. 채널이 삭제되었을 수 있습니다.',
                 ephemeral: true
             });
         }
